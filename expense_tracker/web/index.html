@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpendWise — Expense Tracker (C Backend)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-icon">💰</div>
+        <div>
+          <h1>SpendWise</h1>
+          <p class="brand-subtitle">Personal Expense Tracker & Analytics</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a href="expense_tracker_project.zip" download="expense_tracker_project.zip" class="btn-download-project" title="Download Full Project ZIP file">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>Download Project (.ZIP)</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- KPI Metric Cards -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">Total Spending</span>
+          <span class="kpi-icon">💳</span>
+        </div>
+        <div class="kpi-value" id="kpi-total">₹0.00</div>
+        <div class="kpi-footer" id="kpi-count">0 recorded expenses</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">Average Expense</span>
+          <span class="kpi-icon">📊</span>
+        </div>
+        <div class="kpi-value" id="kpi-average">₹0.00</div>
+        <div class="kpi-footer">Per transaction</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">Highest Expense</span>
+          <span class="kpi-icon">🔥</span>
+        </div>
+        <div class="kpi-value" id="kpi-highest">₹0.00</div>
+        <div class="kpi-footer" id="kpi-highest-meta">None</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">Lowest Expense</span>
+          <span class="kpi-icon">🎯</span>
+        </div>
+        <div class="kpi-value" id="kpi-lowest">₹0.00</div>
+        <div class="kpi-footer" id="kpi-lowest-meta">None</div>
+      </div>
+    </section>
+
+    <!-- Main Content Layout -->
+    <main class="dashboard-grid">
+      <!-- Left Column: Add Expense & Category Breakdown -->
+      <aside class="sidebar-column">
+        <!-- Add Expense Card -->
+        <div class="card add-expense-card">
+          <div class="card-header">
+            <h2>➕ Add New Expense</h2>
+          </div>
+          <form id="add-expense-form">
+            <div class="form-group">
+              <label for="date-input">Date</label>
+              <input type="date" id="date-input" required>
+            </div>
+
+            <div class="form-group">
+              <label for="category-select">Category</label>
+              <select id="category-select" required>
+                <option value="Food & Dining">🍔 Food & Dining</option>
+                <option value="Transportation">🚗 Transportation</option>
+                <option value="Housing & Utilities">🏠 Housing & Utilities</option>
+                <option value="Entertainment">🎬 Entertainment</option>
+                <option value="Healthcare">💊 Healthcare</option>
+                <option value="Shopping">🛍️ Shopping</option>
+                <option value="Education">📚 Education</option>
+                <option value="Personal Care">💅 Personal Care</option>
+                <option value="Travel">✈️ Travel</option>
+                <option value="Other">📦 Other</option>
+                <option value="__custom__">✏️ Custom Category...</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="custom-cat-group" style="display: none;">
+              <label for="custom-cat-input">Custom Category Name</label>
+              <input type="text" id="custom-cat-input" placeholder="e.g. Subscriptions">
+            </div>
+
+            <div class="form-group">
+              <label for="amount-input">Amount (₹)</label>
+              <input type="number" id="amount-input" step="0.01" min="0.01" placeholder="0.00" required>
+            </div>
+
+            <div class="form-group">
+              <label for="desc-input">Description / Note</label>
+              <input type="text" id="desc-input" placeholder="e.g. Dinner with team" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Add Expense</button>
+          </form>
+        </div>
+
+        <!-- Category Breakdown Card -->
+        <div class="card breakdown-card">
+          <div class="card-header">
+            <h2>📊 Category Breakdown</h2>
+          </div>
+          <div id="category-bars" class="category-bars-container">
+            <p class="empty-hint">No category data yet.</p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Right Column: Expense Table & Search Filter -->
+      <section class="main-column">
+        <div class="card table-card">
+          <div class="card-header table-card-header">
+            <h2>📑 Expense Log</h2>
+            <div class="table-actions">
+              <span id="filtered-badge" class="badge">Showing all</span>
+            </div>
+          </div>
+
+          <!-- Filter & Search Toolbar -->
+          <div class="filter-toolbar">
+            <div class="search-box">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="search-input" placeholder="Search by note or category...">
+            </div>
+
+            <div class="filter-controls">
+              <select id="filter-category">
+                <option value="">All Categories</option>
+                <option value="Food & Dining">Food & Dining</option>
+                <option value="Transportation">Transportation</option>
+                <option value="Housing & Utilities">Housing & Utilities</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Healthcare">Healthcare</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Education">Education</option>
+                <option value="Personal Care">Personal Care</option>
+                <option value="Travel">Travel</option>
+                <option value="Other">Other</option>
+              </select>
+
+              <select id="sort-select">
+                <option value="date-desc">Newest First</option>
+                <option value="date-asc">Oldest First</option>
+                <option value="amount-desc">Highest Amount</option>
+                <option value="amount-asc">Lowest Amount</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Expenses Table -->
+          <div class="table-responsive">
+            <table class="expenses-table">
+              <thead>
+                <tr>
+                  <th style="width: 60px;">ID</th>
+                  <th style="width: 120px;">Date</th>
+                  <th style="width: 160px;">Category</th>
+                  <th>Description</th>
+                  <th style="width: 120px; text-align: right;">Amount</th>
+                  <th style="width: 130px; text-align: center;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="expenses-tbody">
+                <tr>
+                  <td colspan="6" class="loading-state">Loading expenses from C backend...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Edit Expense Modal -->
+  <div id="edit-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Edit Expense <span id="modal-expense-id"></span></h3>
+        <button id="modal-close-btn" class="modal-close">&times;</button>
+      </div>
+      <form id="edit-expense-form">
+        <input type="hidden" id="edit-id">
+        <div class="form-group">
+          <label for="edit-date">Date</label>
+          <input type="date" id="edit-date" required>
+        </div>
+        <div class="form-group">
+          <label for="edit-category">Category</label>
+          <select id="edit-category" required>
+            <option value="Food & Dining">🍔 Food & Dining</option>
+            <option value="Transportation">🚗 Transportation</option>
+            <option value="Housing & Utilities">🏠 Housing & Utilities</option>
+            <option value="Entertainment">🎬 Entertainment</option>
+            <option value="Healthcare">💊 Healthcare</option>
+            <option value="Shopping">🛍️ Shopping</option>
+            <option value="Education">📚 Education</option>
+            <option value="Personal Care">💅 Personal Care</option>
+            <option value="Travel">✈️ Travel</option>
+            <option value="Other">📦 Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit-amount">Amount (₹)</label>
+          <input type="number" id="edit-amount" step="0.01" min="0.01" required>
+        </div>
+        <div class="form-group">
+          <label for="edit-desc">Description</label>
+          <input type="text" id="edit-desc" required>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="modal-cancel-btn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
